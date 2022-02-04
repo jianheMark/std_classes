@@ -1,8 +1,14 @@
 #include <iostream>
 #include <algorithm>
-
 #include <string>
 #include <vector>
+/*
+ * struct inheritance format
+
+    struct A { };
+    struct B : A { };
+    struct C : B { };
+ */
 
 int x = 1;
 struct S{
@@ -124,8 +130,11 @@ void f_class_Bit_field()
     ++c.b; //7
     std::cout<<"Now unsigned int b =" <<c.b<<'\n';
     ++c.b;//8 does not fit, will return to 0.
+    //todo it failed.
     std::cout<<"unsigned int b = "<<c.b<<'\n';
 }
+
+
 
 int main() {
     member_templates();
