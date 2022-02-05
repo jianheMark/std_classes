@@ -72,7 +72,7 @@ void g()
 {
     Point orig;
     Point p1(2); //explicit call of constructor. yy is 0.
-//    f(2); //error: could not convert '2' from 'int' to 'Point'
+//    VirtualFunction(2); //error: could not convert '2' from 'int' to 'Point'
     Point p3 = Point(2);
     std::cout<<"explicit conversion. p3.x = "<<p3.x<<"  p3.y = "<<p3.y<<".\n";
 }
@@ -135,36 +135,143 @@ void f_class_Bit_field()
 }
 
 
+//-----------------------USING DECLARATION-----------------------------------------------------------------
+/*
+ * IF the derived class name already have a member with same name, parameter list, and qualifications,
+ * the derived class member hides or overrides(doesn't conflict with) the member that
+ * is introduced from the base class.
+ */
+
+struct struct_using_declaration{
+    virtual void VirtualFunction(int) {std::cout << "struct::VirtualFunction Called now.\n";}
+    void g(char) {std::cout<<"struct::g\n";}
+    void Non_Virual_Function(int) {std::cout << "struct::Non_Virual_Function Called\n";}
+
+protected:
+    int m; //struct::m is protected.
+    typedef int value_type;
+};
+
+struct inherit_struct_using_declaration : struct_using_declaration{
+    using struct_using_declaration::m;
+    using struct_using_declaration::value_type;
+
+    using struct_using_declaration::VirtualFunction;
+    void VirtualFunction(int) override  {std::cout << "inherit_struct_using_declaration::VirtualFunction\n";}
+
+    using struct_using_declaration::g;
+    void g(int) {std::cout<<"inherit_struct_using_declaration::g\n";}
+
+    using struct_using_declaration::Non_Virual_Function;
+    void Non_Virual_Function(int) {std::cout << "inherit_struct_using_declaration::Non_Virual_Function Called\n";}
+};
+//---------------------------------------------------------------------------------------------
+
+struct Class_Non_static_member_function{
+    int data;
+    Class_Non_static_member_function(int val);
+    explicit Class_Non_static_member_function(std::string str);
+
+    //const member function (definition).
+    virtual int getData() const { return data;}
+};
+Class_Non_static_member_function::Class_Non_static_member_function(int val) :data(val) {
+    std::cout<<"Constructor1 called, data = " << data <<'\n';
+}
+
+//Constructor with catch clause.
+Class_Non_static_member_function::Class_Non_static_member_function(std::string str) try : data(std::stoi(str))
+{
+    std::cout<<"Constructor2 called, data = "<< data <<'\n';
+}
+catch (const std::exception&) {
+    std::cout<<"Constructor2 failed, string was = " <<str<<'\n';
+    throw;
+}
+
+struct Derived_Class_Non_static_member_function:Class_Non_static_member_function
+{
+    int data2;
+    explicit Derived_Class_Non_static_member_function(int v1,int v2=11):Class_Non_static_member_function(v1),data2(v2) {}
+
+    int getData() const override { return data * data2;}
+
+    Derived_Class_Non_static_member_function& operator= (Derived_Class_Non_static_member_function other) &
+    {
+        std::swap(other.data, data);
+        std::swap(other.data2,data2);
+        return *this;
+    }
+};
+
+
+//todo const- and volatile-qualified member functions
+//file:///C:/Users/JIAN%20HE/Downloads/html-book-20220201/reference/en/cpp/language/member_functions.html
 
 int main() {
-    member_templates();
-    f_class_Bit_field();
-    thisPointerClass t1(19);
-    std::cout<<"t1.x= "<<t1.x<<'\n';
 
-    inClassConstant i1;
-    i1.c6 = 89;
-    std::cout<<"i1.c6 value now "<<i1.c6<<'\n';
-    std::cout<<"In class constant demo: "<<inClassConstantF()<<'\n';
-    std::cout<<"Calling Point explicit construct> ";
-    g();
-    //
-    templateA a2{};
-    std::cout<<a2.v<<'\n';
-    std::cout<<'\n';
-//    std::cout<<a2.v;
-    std::cout<<"original x value: "<<x<<'\n';
-    S s1;
-    std::cout<<"s1.n: "<<s1.n<<'\n';
-    std::cout<<"x: "<<x<<'\n';
-    /*
-     * If a member has default member initializer and also appears in the member initialization list in a constructor,
-    * the default member initializer is ignored for that constructor.
-    */
-    S s2(7);
-    std::cout<<x<<'\n';
+    Derived_Class_Non_static_member_function d1(2);
+    std::cout<<"1. d1.getData(): "<<d1.getData()<<'\n';
+
+    Class_Non_static_member_function s2("2");
 
 
-    std::cout << "Hello, World!" << std::endl;
+    try {
+        Class_Non_static_member_function s3("NOT a Number");
+    }
+    catch (const std::exception&) {}
+    std::cout<<"Class_Non_static_member_function.getData(): "<<s2.getData()<<'\n';
+    Derived_Class_Non_static_member_function d2(3,4);
+
+    d2 = d1;
+
+    std::cout<<"Now Derived_Class_Non_static_member_function d2.data2:" <<d2.data2<<", d2.data: "<<d2.data<<'\n';
+
+    std::cout<<"Now test for Derived_Class_Non_static_member_function.getData = data * data2 is true=  "<<d2.getData()<<'\n';
+
+
+
+
+
+
+
+//    inherit_struct_using_declaration i;
+//    struct_using_declaration& s = i;
+////    i.m = 1;
+//    s.VirtualFunction(1);
+//    i.VirtualFunction(1);
+//    i.g(1); // call derived int
+//    i.g('A'); //call base g(char).
+//    std::cout<<'\n';
+//    i.Non_Virual_Function(1);
+//    s.Non_Virual_Function(1);
+//    member_templates();
+//    f_class_Bit_field();
+//    thisPointerClass t1(19);
+//    std::cout<<"t1.x= "<<t1.x<<'\n';
+//
+//    inClassConstant i1;
+//    i1.c6 = 89;
+//    std::cout<<"i1.c6 value now "<<i1.c6<<'\n';
+//    std::cout<<"In class constant demo: "<<inClassConstantF()<<'\n';
+//    std::cout<<"Calling Point explicit construct> ";
+//    g();
+//    //
+//    templateA a2{};
+//    std::cout<<a2.v<<'\n';
+//    std::cout<<'\n';
+////    std::cout<<a2.v;
+//    std::cout<<"original x value: "<<x<<'\n';
+//    S s1;
+//    std::cout<<"s1.n: "<<s1.n<<'\n';
+//    std::cout<<"x: "<<x<<'\n';
+//    /*
+//     * If a member has default member initializer and also appears in the member initialization list in a constructor,
+//    * the default member initializer is ignored for that constructor.
+//    */
+//    S s2(7);
+//    std::cout<<x<<'\n';
+
+
     return 0;
 }
